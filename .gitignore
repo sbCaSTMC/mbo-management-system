@@ -1,0 +1,25 @@
+# データファイル（個人情報含む可能性）
+mbo_data.json
+mbo_data_backup.json
+
+# Pythonキャッシュ
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# 仮想環境
+venv/
+env/
+.env
+
+# IDE設定
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS生成ファイル
+.DS_Store
+Thumbs.db
