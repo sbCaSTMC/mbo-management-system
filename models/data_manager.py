@@ -331,6 +331,132 @@ class DataManager:
         """期間一覧を取得する"""
         return list(self.data["periods"].keys())
     
+    def export_csv_summary(self, period_name: str = None) -> str:
+        """指定期間の結果をCSV形式で出力する"""
+        import io
+        import csv
+        
+        if period_name is None:
+            period_name = self.data["current_period"]
+        
+        if not period_name or period_name not in self.data["periods"]:
+            return ""
+        
+        period_data = self.data["periods"][period_name]
+        goals = period_data.get("goals", [])
+        achievements = period_data.get("achievements", {})
+        
+        # CSVデータの準備
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # ヘッダー行
+        writer.writerow([
+            "期間", "目標ID", "目標タイトル", "重要度", "期日", "目標詳細",
+            "達成率(%)", "達成項目数", "達成項目詳細", "作成日"
+        ])
+        
+        # データ行
+        for goal in goals:
+            goal_id = goal['id']
+            goal_achievements = achievements.get(goal_id, {})
+            total_percentage = goal_achievements.get('total_percentage', 0.0)
+            items = goal_achievements.get('items', [])
+            
+            # 達成項目詳細の結合
+            achievement_details = []
+            for i, item in enumerate(items, 1):
+                achievement_details.append(f"{i}. {item['content']} ({item['percentage']:.1f}%)")
+            
+            achievement_details_str = " | ".join(achievement_details) if achievement_details else "未記入"
+            
+            writer.writerow([
+                period_name,
+                goal_id,
+                goal['title'],
+                goal['weight'],
+                goal['deadline'],
+                goal.get('description', ''),
+                f"{total_percentage:.1f}",
+                len(items),
+                achievement_details_str,
+                goal.get('created_at', '')[:10]  # 日付部分のみ
+            ])
+        
+        return output.getvalue()
+    
+    def export_csv_detailed(self, period_name: str = None) -> str:
+        """指定期間の詳細結果をCSV形式で出力する（達成項目別）"""
+        import io
+        import csv
+        
+        if period_name is None:
+            period_name = self.data["current_period"]
+        
+        if not period_name or period_name not in self.data["periods"]:
+            return ""
+        
+        period_data = self.data["periods"][period_name]
+        goals = period_data.get("goals", [])
+        achievements = period_data.get("achievements", {})
+        
+        # CSVデータの準備
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # ヘッダー行
+        writer.writerow([
+            "期間", "目標ID", "目標タイトル", "目標重要度", "目標期日", "目標詳細",
+            "達成項目ID", "達成項目内容", "達成項目率(%)", "達成項目作成日", "目標全体達成率(%)"
+        ])
+        
+        # データ行
+        for goal in goals:
+            goal_id = goal['id']
+            goal_achievements = achievements.get(goal_id, {})
+            total_percentage = goal_achievements.get('total_percentage', 0.0)
+            items = goal_achievements.get('items', [])
+            
+            if items:
+                # 達成項目がある場合は各項目を行として出力
+                for item in items:
+                    writer.writerow([
+                        period_name,
+                        goal_id,
+                        goal['title'],
+                        goal['weight'],
+                        goal['deadline'],
+                        goal.get('description', ''),
+                        item['id'],
+                        item['content'],
+                        f"{item['percentage']:.1f}",
+                        item.get('created_at', '')[:10],
+                        f"{total_percentage:.1f}"
+                    ])
+            else:
+                # 達成項目がない場合は目標のみ出力
+                writer.writerow([
+                    period_name,
+                    goal_id,
+                    goal['title'],
+                    goal['weight'],
+                    goal['deadline'],
+                    goal.get('description', ''),
+                    "",
+                    "未記入",
+                    "0.0",
+                    "",
+                    "0.0"
+                ])
+        
+        return output.getvalue()
+    
+    def get_available_periods_for_export(self) -> List[str]:
+        """エクスポート可能な期間一覧を取得する"""
+        return [period for period, data in self.data["periods"].items() 
+                if data.get("goals", [])  # 目標があるもののみ
+               ]
+    
     def get_statistics(self) -> Dict[str, Any]:
         """統計情報を取得する"""
         goals = self.get_goals()

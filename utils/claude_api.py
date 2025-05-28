@@ -51,7 +51,11 @@ class ClaudeAPIManager:
                 messages=[{"role": "user", "content": prompt}]
             )
             
-            return message.content[0].text
+            # contentが空の場合のエラーハンドリング
+            if message.content and len(message.content) > 0:
+                return message.content[0].text
+            else:
+                return "❌ 報告書の生成に失敗しました。レスポンスが空です。"
             
         except Exception as e:
             return f"❌ 報告書の生成中にエラーが発生しました: {str(e)}"
@@ -135,7 +139,11 @@ class ClaudeAPIManager:
                 messages=[{"role": "user", "content": prompt}]
             )
             
-            return message.content[0].text
+            # contentが空の場合のエラーハンドリング
+            if message.content and len(message.content) > 0:
+                return message.content[0].text
+            else:
+                return "❌ 目標提案の生成に失敗しました。レスポンスが空です。"
             
         except Exception as e:
             return f"❌ 目標提案の生成中にエラーが発生しました: {str(e)}"
@@ -175,7 +183,11 @@ class ClaudeAPIManager:
                 messages=[{"role": "user", "content": prompt}]
             )
             
-            return message.content[0].text
+            # contentが空の場合のエラーハンドリング
+            if message.content and len(message.content) > 0:
+                return message.content[0].text
+            else:
+                return "❌ 達成内容の分析に失敗しました。レスポンスが空です。"
             
         except Exception as e:
             return f"❌ 達成内容の分析中にエラーが発生しました: {str(e)}"
